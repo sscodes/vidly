@@ -1,0 +1,74 @@
+const express = require('express');     //requiring the express framework
+const route = express.Router();
+const mongoose = require('mongoose');
+const {Movie} = require('../models/movie');
+const {Rental, validate} = require('../models/rental');
+const {Customer} = require('../models/customer');
+
+//Create a movie
+route.post('/', async (req,res) => {
+    //input validation
+    const results = validate(req.body);
+    if (!results)
+    {
+        res.status(400).send(results.error.details[0].message);
+        return;
+    }
+    
+    //if valid, check presence of movie and customer.
+
+    const customer = await Customer.findById(req.body.customerId);
+    if(!customer)
+        return res.status(400).send('Invalid Customer');
+
+    const movie = await Movie.findById(req.body.movieId);
+    if(!movie)
+        return res.status(400).send('Invalid Movie');
+
+    if(movie.numberInStock === 0)
+    return res.status(400).send('The movie is out of stock');
+
+    //format it a.c.t. database
+    const rental = new Rental({
+        customer: {
+            _id: customer._id,
+            isGold: customer.isGold,
+            name: customer.name,
+            phone: customer.phone
+        },
+        movie: {
+            _id: movie._id,
+            title: movie.title,
+            dailyRentalRate: movie.dailyRentalRate
+        }
+    });
+
+    //add to database
+    try     //to handle validation exceptions
+    {
+        const result = await rental.save();
+
+        movie.numberInStock--;
+        movie.save();
+
+        //show the added rental
+        res.send(result);
+    }
+    catch(err)
+    {
+        for(field in err.errors)
+        {
+            console.log(err.errors[field].message);
+        }
+    }
+});
+
+
+//Read the whole rentals
+route.get('/', async (req,res) => {
+    const rentals = await Rental.find().sort('-dateOut');
+    //send the whole rentals database
+    res.send(rentals);
+});
+
+module.exports = route;
