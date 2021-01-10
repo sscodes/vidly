@@ -1,20 +1,26 @@
 const express = require('express');     //requiring the express framework
 const route = express.Router();
 const mongoose = require('mongoose');
+const Fawn = require('fawn');
 const {Movie} = require('../models/movie');
 const {Rental, validate} = require('../models/rental');
 const {Customer} = require('../models/customer');
 
-//Create a movie
+Fawn.init(mongoose);
+
+//Create a rental
 route.post('/', async (req,res) => {
     //input validation
     const results = validate(req.body);
     if (!results)
-    {
-        res.status(400).send(results.error.details[0].message);
-        return;
-    }
-    
+        return res.status(400).send(results.error.details[0].message);
+
+    //check the validity of objectId of customer and movie
+    if(!mongoose.Types.ObjectId.isValid(req.body.customerId))
+        return res.status(400).send(`customerId with value "${req.body.customerId}" fails to match the required pattern... `)
+    if(!mongoose.Types.ObjectId.isValid(req.body.movieId))
+        return res.status(400).send(`movieId with value "${req.body.movieId}" fails to match the required pattern... `)
+
     //if valid, check presence of movie and customer.
 
     const customer = await Customer.findById(req.body.customerId);
@@ -46,20 +52,19 @@ route.post('/', async (req,res) => {
     //add to database
     try     //to handle validation exceptions
     {
-        const result = await rental.save();
-
-        movie.numberInStock--;
-        movie.save();
+        new Fawn.Task()
+                .save('rentals', rental)
+                .update('movies', { _id: movie._id}, {
+                    $inc: { numberInStock: -1 }
+                })
+                .run();
 
         //show the added rental
-        res.send(result);
+        res.send(rental);
     }
-    catch(err)
+    catch(ex)
     {
-        for(field in err.errors)
-        {
-            console.log(err.errors[field].message);
-        }
+        res.status(500).send('Something failed...');
     }
 });
 
