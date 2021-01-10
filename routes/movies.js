@@ -13,8 +13,10 @@ route.post('/', async (req,res) => {
         res.status(400).send(results.error.details[0].message);
         return;
     }
+    //check the validity of objectId of genre
+    if(!mongoose.Types.ObjectId.isValid(req.body.genreId))
+        return res.status(400).send(`genreId with value "${req.body.genreId}" fails to match the required pattern... `)
 
-    
     //if valid, check presence of genre.
 
     const genre = await Genre.findById(req.body.genreId);
@@ -35,9 +37,9 @@ route.post('/', async (req,res) => {
     //add to database
     try     //to handle validation exceptions
     {
-        const result = await movie.save();   
+        await movie.save();   
         //show the added movie
-        res.send(result);
+        res.send(movie);
     }
     catch(err)
     {
