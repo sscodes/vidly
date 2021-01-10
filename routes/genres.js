@@ -23,9 +23,9 @@ route.post('/', async (req,res) => {
     //add to database
     try     //to handle validation exceptions
     {
-        const result = await genre.save();   
+        await genre.save();   
         //show the added genre
-        res.send(result);
+        res.send(genre);
     }
     catch(err)
     {
