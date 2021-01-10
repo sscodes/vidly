@@ -1,11 +1,9 @@
 const mongoose = require('mongoose');
-const Joi = require('joi');     //required for input validation
 const genres = require('./routes/genres');
 const customers = require('./routes/customers');
 const movies = require('./routes/movies');
 const rentals = require('./routes/rentals');
 const express = require('express');     //requiring the express framework
-const { boolean } = require('joi');
 const app = express();
 
 
