@@ -1,113 +1,29 @@
-const express = require('express');     //requiring the express framework
-const route = express.Router();
 const mongoose = require('mongoose');
-const {Genre} = require('../models/genre');
-const {Movie, validate} = require('../models/movie');
-
-//Create a movie
-route.post('/', async (req,res) => {
-    //input validation
-    const results = validate(req.body);
-    if (!results)
-    {
-        res.status(400).send(results.error.details[0].message);
-        return;
-    }
-    //check the validity of objectId of genre
-    if(!mongoose.Types.ObjectId.isValid(req.body.genreId))
-        return res.status(400).send(`genreId with value "${req.body.genreId}" fails to match the required pattern... `)
-
-    //if valid, check presence of genre.
-
-    const genre = await Genre.findById(req.body.genreId);
-    if(!genre)
-        return res.status(400).send('Invalid Genre');
-
-    //format it a.c.t. database
-    const movie = new Movie({
-        title: req.body.title,
-        genre: {
-            id: genre._id,
-            name: genre.name
-        },
-        numberInStock: req.body.numberInStock,
-        dailyRentalRate: req.body.dailyRentalRate
-    });
-
-    //add to database
-    try     //to handle validation exceptions
-    {
-        await movie.save();   
-        //show the added movie
-        res.send(movie);
-    }
-    catch(err)
-    {
-        for(field in err.errors)
-        {
-            console.log(err.errors[field].message);
-        }
-    }
-});
+const genres = require('./routes/genres');
+const customers = require('./routes/customers');
+const movies = require('./routes/movies');
+const rentals = require('./routes/rentals');
+const express = require('express');     //requiring the express framework
+const app = express();
 
 
-//Read the whole movies
-route.get('/', async (req,res) => {
-    const movies = await Movie.find().sort({title:1});
-    //send the whole movies database
-    res.send(movies);
-});
 
-//Read a movie
-route.get('/:id', async (req, res) => {
-    const movie =   await Movie.findById(req.params.id);
-    //checking if route parameter === any of the id in movies array.
-    //if not found
-    if(!movie)   
-    return res.status(404).send('The Movie was unavailable.');    //send error
-    
-    //else
-    res.send(movie);  //send object
-});
+//the package mongoose returns a Promise
+mongoose.connect("mongodb://localhost/vidly", { useNewUrlParser: true , useUnifiedTopology: true })
+    .then(() => console.log('Connected to MongoDB...'))
+    .catch(err => console.log(err));
+
+app.use(express.json());
+
+app.use('/api/genres', genres); //use genres module in place of /api/genres
+app.use('/api/customers', customers);  //use customers module in place of /api/customers
+app.use('/api/movies', movies);  //use customers module in place of /api/movies
+app.use('/api/rentals', rentals);  //use customers module in place of /api/movies
 
 
-//Update a movie
-route.put('/:id', async (req, res) => {
-    //input validation
-    if (!validate(req.body))
-    {
-        res.status(400).send(results.error.details[0].message);
-        return;
-    }
+//creating environment variable
+const port = process.env.PORT || 4774;
 
-    //if valid, check presence of genre.
-
-    const genre = await Genre.findById(req.body.genreId);
-    if(!genre)
-        return res.status(400).send('Invalid Genre');
-
-    //check existense
-    const movie = await Movie.findByIdAndUpdate(req.params.id, { title: req.body.title, genre: { id: genre._id, name: genre.name } }, { new: true });
-    
-    if(!movie)    //if not found
-    return res.status(404).send('The Movie was unavailable.');
-
-    //show the updated movie
-    res.send(movie)
-});
-
-
-//Delete a movie
-route.delete('/:id', async (req,res) => {
-    //check existence
-    const movie = await Movie.findByIdAndRemove(req.params.id);
-    if(!movie)    //if not found
-    return res.status(404).send('The Movie was unavailable.');
-
-    //if exists
-
-    //send the deleted movie
-    res.send(movie);
-});
-
-module.exports = route;
+app.listen(port, () => {
+    console.log(`Listening on port ${port}...`);
+})
