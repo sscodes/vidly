@@ -1,8 +1,6 @@
-const { date } = require('joi');
 const Joi = require('joi'); 
 //required for input validation
 const mongoose = require('mongoose');
-const {customerSchema} = require('./customer');
 
 const Rental = mongoose.model('Rental', new mongoose.Schema({
     customer: {
@@ -59,12 +57,12 @@ const Rental = mongoose.model('Rental', new mongoose.Schema({
 
 
 //validation function
-function validate(movie) {
+function validate(rental) {
     const schema = Joi.object({
-        customerId: Joi.number().required(),
-        movieId: Joi.number().required()
+        customerId: Joi.string().required(),
+        movieId: Joi.string().required()
     })
-    return schema.validate(movie);
+    return schema.validate(rental);
 }
 
 module.exports.Rental = Rental;
