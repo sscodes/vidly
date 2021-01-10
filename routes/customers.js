@@ -26,9 +26,9 @@ route.post('/', async (req,res) => {
     //add to database
     try     //to handle validation exceptions
     {
-        const result = await customer.save();   
+        await customer.save();   
         //show the added customer
-        res.send(result);
+        res.send(customer);
     }
     catch(err)
     {
