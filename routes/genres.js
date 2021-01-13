@@ -6,12 +6,9 @@ const { Genre, validate} = require('../models/genre');
 //Create a genre
 route.post('/', async (req,res) => {
     //input validation
-    const results = validate(req.body);
-    if (!results)
-    {
-        res.status(400).send(results.error.details[0].message);
-        return;
-    }
+    const result = validate(req.body);
+    if (!result)
+        return res.status(400).send(result.error.details[0].message);
 
     //if valid
 
@@ -31,7 +28,7 @@ route.post('/', async (req,res) => {
     {
         for(field in err.errors)
         {
-            console.log(err.errors[field].message);
+            res.status(400).send(err.errors[field].message);
         }
     }
 });
