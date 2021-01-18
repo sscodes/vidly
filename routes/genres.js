@@ -1,10 +1,16 @@
+/*
+route to CRUD a collection of all the sign ups to our service.
+*/
+
 const express = require('express');     //requiring the express framework
 const route = express.Router();
 const mongoose = require('mongoose');
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 const { Genre, validate} = require('../models/genre');
 
 //Create a genre
-route.post('/', async (req,res) => {
+route.post('/', auth, async (req,res) => {
     //input validation
     const result = validate(req.body);
     if (!result)
@@ -55,7 +61,7 @@ route.get('/:id', async (req, res) => {
 
 
 //Update a genre
-route.put('/:id', async (req, res) => {
+route.put('/:id', auth, async (req, res) => {
     //input validation
     if (!validate(req.body))
     {
@@ -75,7 +81,7 @@ route.put('/:id', async (req, res) => {
 
 
 //Delete a genre
-route.delete('/:id', async (req,res) => {
+route.delete('/:id', [auth, admin], async (req,res) => {
     //check existence
     const genre = await Genre.findByIdAndRemove(req.params.id);
     if(!genre)    //if not found
