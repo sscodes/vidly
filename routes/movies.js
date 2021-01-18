@@ -2,10 +2,11 @@ const express = require('express');     //requiring the express framework
 const route = express.Router();
 const mongoose = require('mongoose');
 const {Genre} = require('../models/genre');
+const auth = require('../middleware/auth');
 const {Movie, validate} = require('../models/movie');
 
 //Create a movie
-route.post('/', async (req,res) => {
+route.post('/', auth, async (req,res) => {
     //input validation
     const result = validate(req.body);
     if (!result)
@@ -70,7 +71,7 @@ route.get('/:id', async (req, res) => {
 
 
 //Update a movie
-route.put('/:id', async (req, res) => {
+route.put('/:id', auth, async (req, res) => {
     //input validation
     if (!validate(req.body))
     {
@@ -96,7 +97,7 @@ route.put('/:id', async (req, res) => {
 
 
 //Delete a movie
-route.delete('/:id', async (req,res) => {
+route.delete('/:id', auth, async (req,res) => {
     //check existence
     const movie = await Movie.findByIdAndRemove(req.params.id);
     if(!movie)    //if not found
