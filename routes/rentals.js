@@ -11,9 +11,9 @@ Fawn.init(mongoose);
 //Create a rental
 route.post('/', async (req,res) => {
     //input validation
-    const results = validate(req.body);
-    if (!results)
-        return res.status(400).send(results.error.details[0].message);
+    const result = validate(req.body);
+    if (!result)
+        return res.status(400).send(result.error.details[0].message);
 
     //check the validity of objectId of customer and movie
     if(!mongoose.Types.ObjectId.isValid(req.body.customerId))
