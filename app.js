@@ -1,3 +1,6 @@
+require('express-async-errors');
+const winston = require('winston');
+require('winston-mongodb');
 const mongoose = require('mongoose');
 const genres = require('./routes/genres');
 const customers = require('./routes/customers');
@@ -8,6 +11,10 @@ const auth = require('./routes/auth');
 const config = require('config');
 const express = require('express');     //requiring the express framework
 const app = express();
+const error = require('./middleware/error');
+
+winston.add(new winston.transports.File({ filename: 'logfile.log' }));
+winston.add(new winston.transports.MongoDB({ db: 'mongodb://localhost/vidly'}));
 
 if(!config.get('jwtPrivateKey'))
 {
@@ -28,6 +35,8 @@ app.use('/api/movies', movies);  //use movies module in place of /api/movies
 app.use('/api/rentals', rentals);  //use rentals module in place of /api/rentals
 app.use('/api/users', users);  //use users module in place of /api/users
 app.use('/api/auth', auth);  //use auth module in place of /api/auth
+
+app.use(error);
 
 
 //creating environment variable
