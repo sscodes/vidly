@@ -13,8 +13,20 @@ const express = require('express');     //requiring the express framework
 const app = express();
 const error = require('./middleware/error');
 
+winston.handleExceptions(
+    new winston.transports.File({ filename: 'uncaughtExceptions.log' }));
+
+process.on('unhandledRejection', (ex) => {
+    throw ex;
+});
+
 winston.add(new winston.transports.File({ filename: 'logfile.log' }));
 winston.add(new winston.transports.MongoDB({ db: 'mongodb://localhost/vidly'}));
+
+// throw new Error('Something falied during startup');
+
+const p = Promise.reject(new Error('Something falied during startup miserably'));
+p.then(() => console.log('Done'));
 
 if(!config.get('jwtPrivateKey'))
 {
