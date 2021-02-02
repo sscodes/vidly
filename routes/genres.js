@@ -43,7 +43,6 @@ route.post('/', auth, async (req,res) => {
 
 //Read the whole genres
 route.get('/', async (req, res) => {
-    throw new Error('Could not get the genres.');
     const genres = await Genre.find().sort({name:1});
     //send the whole genres database
     res.send(genres);
